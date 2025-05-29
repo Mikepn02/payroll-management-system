@@ -50,30 +50,7 @@ public class AuthenticationServiceImpl implements IAuthService {
         return generateJwtAuthenticationResponse(authentication);
     }
 
-    @Override
-    public UserResponseDTO register(RegisterUserDTO registerUserDTO) {
-        if(userRepository.existsByEmail(registerUserDTO.getEmail())) {
-            throw new AppException("User with that email already exists");
-        }
 
-
-            Role role = roleService.getRoleByName(ERole.USER);
-
-            User user = User.builder()
-                    .firstName(registerUserDTO.getFirstName())
-                    .lastName(registerUserDTO.getLastName())
-                    .email(registerUserDTO.getEmail())
-                    .phoneNumber(registerUserDTO.getPhoneNumber())
-                    .roles(Set.of(role))
-                    .password(passwordEncoder.encode(registerUserDTO.getPassword()))
-                    .build();
-
-            userRepository.save(user);
-
-            return Mapper.getMapper().map(user, UserResponseDTO.class);
-
-
-    }
 
     private Authentication authenticateUser(LoginDTO loginDTO) {
         UsernamePasswordAuthenticationToken authRequest =

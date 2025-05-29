@@ -16,6 +16,7 @@ import com.mikepn.template.v1.repositories.IUserRepository;
 import com.mikepn.template.v1.services.IEmployementService;
 import com.mikepn.template.v1.services.IRoleService;
 import com.mikepn.template.v1.utils.Mapper;
+import com.mikepn.template.v1.utils.helper.CodeGenerator;
 import com.mikepn.template.v1.utils.helper.EmployeeHelper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class EmployeeServiceImpl implements IEmployementService {
     private final EmployeeHelper employeeHelper;
     private final PasswordEncoder passwordEncoder;
     private final EmployeeMapper employeeMapper;
+    private final CodeGenerator codeGenerator;
 
     @Override
     public EmployeeResponseDTO createEmployee(CreateEmployeeDTO dto) {
@@ -42,6 +44,8 @@ public class EmployeeServiceImpl implements IEmployementService {
         if(employeeRepository.existsByProfile_Email(dto.getEmail())){
             throw new AppException("Employee with that email already exists");
         }
+
+
 
 
         try {
@@ -53,6 +57,7 @@ public class EmployeeServiceImpl implements IEmployementService {
 
 
             Employee employee = employeeHelper.buildEmployee(user);
+            employee.setCode(generateUniqueEmployeeCode());
             employee = employeeRepository.save(employee);
 
 
@@ -142,6 +147,15 @@ public class EmployeeServiceImpl implements IEmployementService {
 
         return employeeMapper.toDto(employee);
     }
+
+    public String generateUniqueEmployeeCode() {
+        String code;
+        do {
+            code = codeGenerator.generateEmployeeCode();
+        } while (employeeRepository.existsByCode(code));
+        return code;
+    }
+
 
 
 }

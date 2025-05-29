@@ -8,7 +8,6 @@ import com.mikepn.template.v1.dtos.response.auth.AuthResponse;
 public interface IAuthService {
 
     AuthResponse login(LoginDTO signInDTO);
-    UserResponseDTO register(RegisterUserDTO registerUserDTO);
 
     void forgotPassword(String email);
 

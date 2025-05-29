@@ -17,5 +17,6 @@ public class EmployeeResponseDTO {
     private String email;
     private LocalDate dateOfBirth;
     private boolean verified;
+    private String code;
     private String phoneNumber;
 }

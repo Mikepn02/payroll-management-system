@@ -17,6 +17,7 @@ public class EmployeeMapper {
                 .email(employee.getProfile().getEmail())
                 .dateOfBirth(employee.getProfile().getDateOfBirth())
                 .phoneNumber(employee.getProfile().getPhoneNumber())
+                .code(employee.getCode())
                 .verified(employee.getProfile().isVerified())
                 .build();
     }
