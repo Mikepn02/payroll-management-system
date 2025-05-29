@@ -12,17 +12,15 @@ spring:
     validate-on-migrate: true
     out-of-order: false
 
-
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate  # Changed from 'update' to 'validate'
     show-sql: false
     properties:
       hibernate:
         format_sql: true
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-
 
   mail:
     host: smtp.gmail.com
@@ -36,7 +34,6 @@ spring:
           ssl:
             enable: true
             trust: "*"
-
         starttls:
           enable: true
       protocol: smtp
@@ -72,3 +69,4 @@ logging:
     org:
       springframework:
         security: DEBUG
+      flywaydb: DEBUG  # Added Flyway debug logging

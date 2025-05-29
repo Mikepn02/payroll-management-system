@@ -8,6 +8,8 @@ import com.mikepn.template.v1.standalone.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -20,17 +22,23 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class NotificationEmailService {
 
+    private static final Logger logger = LoggerFactory.getLogger(NotificationEmailService.class);
+
     private final INotificationRepository notificationRepository;
     private final EmailService emailService;
 
-    @Scheduled(fixedDelay = 5000)
+    @Scheduled(fixedDelay = 5000) // Every 5 seconds after the last execution completes
     @Transactional
     public void sendPendingNotificationEmails() {
+        logger.info("Scheduled Task Triggered at {}", LocalDateTime.now());
+
         List<Notification> pendingNotifications = notificationRepository.findByEmailSentFalse();
+        logger.info("Found {} pending notifications", pendingNotifications.size());
 
         for (Notification notification : pendingNotifications) {
             String to = notification.getEmployee().getProfile().getEmail();
             if (to == null || to.isBlank()) {
+                logger.warn("Skipping notification with ID {} due to missing email", notification.getId());
                 continue;
             }
 
@@ -39,6 +47,7 @@ public class NotificationEmailService {
                 variables.put("messageContent", notification.getMessageContent());
                 variables.put("notificationDate", notification.getCreatedDate());
 
+                logger.info("Sending email to {}", to);
                 emailService.sendEmail(
                         to,
                         notification.getEmployee().getProfile().getFullName(),
@@ -52,9 +61,12 @@ public class NotificationEmailService {
                 notification.setStatus(EMessageStatus.SENT);
                 notificationRepository.save(notification);
 
+                logger.info("Email sent and status updated for notification ID {}", notification.getId());
+
             } catch (MessagingException e) {
-                System.err.println("Failed to send notification email to " + to + ": " + e.getMessage());
-                // optionally log with Logger
+                logger.error("Failed to send notification email to {}: {}", to, e.getMessage(), e);
+            } catch (Exception ex) {
+                logger.error("Unexpected error while sending notification to {}: {}", to, ex.getMessage(), ex);
             }
         }
     }
