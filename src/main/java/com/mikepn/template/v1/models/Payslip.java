@@ -12,6 +12,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -83,6 +84,9 @@ public class Payslip extends AbstractEntity {
 
     @Column(name = "approved_by")
     private String approvedBy;
+
+    @OneToMany
+    private List<Notification> notifications;
 
 
     public String getMonthName() {

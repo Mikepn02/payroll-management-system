@@ -41,6 +41,9 @@ public class Employee extends AbstractEntity {
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Payslip> paySlips;
 
+    @OneToMany
+    private List<Notification> notifications;
+
     @Enumerated(EnumType.STRING)
     private EAccountStatus status;
 }

@@ -26,7 +26,6 @@ public class Notification extends AbstractEntity {
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
 
-    // Optional: Link to Payslip if needed
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payslip_id")
     private Payslip payslip;

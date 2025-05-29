@@ -2,14 +2,12 @@ package com.mikepn.template.v1.services.impl;
 
 import com.mikepn.template.v1.dtos.request.PayslipRequestDTO;
 import com.mikepn.template.v1.dtos.response.payslip.PayslipResponseDTO;
+import com.mikepn.template.v1.enums.EMessageStatus;
 import com.mikepn.template.v1.enums.EPaySlipStatus;
 import com.mikepn.template.v1.enums.EmployementStatus;
 import com.mikepn.template.v1.exceptions.AppException;
 import com.mikepn.template.v1.models.*;
-import com.mikepn.template.v1.repositories.IDeductionRepository;
-import com.mikepn.template.v1.repositories.IEmployeeRepository;
-import com.mikepn.template.v1.repositories.IEmployementRepository;
-import com.mikepn.template.v1.repositories.IPaySlipRepository;
+import com.mikepn.template.v1.repositories.*;
 import com.mikepn.template.v1.services.IPaySlipService;
 import com.mikepn.template.v1.services.IUserService;
 import com.mikepn.template.v1.standalone.EmailService;
@@ -31,6 +29,7 @@ public class PayslipServiceImpl implements IPaySlipService {
     private final IPaySlipRepository paySlipRepository;
     private final IEmployeeRepository employeeRepository;
     private final IDeductionRepository deductionRepository;
+    private final INotificationRepository notificationRepository;
     private final PayslipHelper payslipHelper;
     private final IUserService userService;
     private final EmailService emailService;
@@ -137,7 +136,6 @@ public class PayslipServiceImpl implements IPaySlipService {
     }
 
     @Override
-    @Transactional
     public PayslipResponseDTO approvePayslip(UUID payslipId) {
         User loggedInUser = userService.getLoggedInUser();
 
@@ -155,6 +153,18 @@ public class PayslipServiceImpl implements IPaySlipService {
         paySlipRepository.save(payslip);
 
         sendPayslipApprovedEmail(payslip);
+
+        Notification notification = Notification.builder()
+                .employee(payslip.getEmployee())
+                .messageContent("Your salary has been approved.")
+                .month(payslip.getMonth())
+                .year(payslip.getYear())
+                .sentAt(LocalDateTime.now())
+                .payslip(payslip)
+                .status(EMessageStatus.SENT)
+                .build();
+
+        notificationRepository.save(notification);
 
         return payslipHelper.mapToPayslipResponseDTO(payslip);
     }
@@ -178,6 +188,18 @@ public class PayslipServiceImpl implements IPaySlipService {
             paySlipRepository.save(payslip);
 
             sendPayslipApprovedEmail(payslip);
+
+            Notification notification = Notification.builder()
+                    .employee(payslip.getEmployee())
+                    .messageContent("Your salary has been approved.")
+                    .month(payslip.getMonth())
+                    .year(payslip.getYear())
+                    .sentAt(LocalDateTime.now())
+                    .payslip(payslip)
+                    .status(EMessageStatus.SENT)
+                    .build();
+
+            notificationRepository.save(notification);
 
             approvedPayslips.add(payslipHelper.mapToPayslipResponseDTO(payslip));
         }

@@ -5,16 +5,16 @@ spring:
     username: postgres
     password: nzabera2006
 
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
-    baseline-on-migrate: true
-    validate-on-migrate: true
-    out-of-order: false
+#  flyway:
+#    enabled: true
+#    locations: classpath:db/migration
+#    baseline-on-migrate: true
+#    validate-on-migrate: true
+#    out-of-order: false
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: validate  # Changed from 'update' to 'validate'
     show-sql: false
     properties:
       hibernate:
