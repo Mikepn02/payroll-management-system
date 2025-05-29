@@ -58,6 +58,15 @@ public class AuthenticationController {
     }
 
 
+    @Operation(summary = "Create admin account", description = "Creates a new administrator account")
+    @PostMapping("/admin/register")
+    public ResponseEntity<ApiResponse<UserResponseDTO>> createAdmin(@Valid @RequestBody CreateAdminDTO createAdminDTO) {
+        UserResponseDTO createdUser = userService.createAdmin(createAdminDTO);
+        return ApiResponse.success("Admin created successfully", HttpStatus.CREATED, createdUser);
+
+    }
+
+
 
 
     @Operation(summary = "Initiate password reset", description = "Sends password reset instructions to email")
