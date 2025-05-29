@@ -3,10 +3,7 @@ package com.mikepn.template.v1.dtos.request.auth;
 
 import com.mikepn.template.v1.annotations.ValidPassword;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -18,6 +15,7 @@ public class RegisterUserDTO {
 
     @NotBlank(message = "First name cannot be blank")
     @Pattern(regexp = "^[A-Za-z].*", message = "First name must start with a letter")
+    @Schema(example = "John")
     private String firstName;
 
 
@@ -34,10 +32,9 @@ public class RegisterUserDTO {
     @NotBlank(message = "Phone number cannot be blank")
     private String phoneNumber;
 
+    @NotNull(message = "Date of birth cannot be null")
     @Schema(example = "1990-01-01")
-    @NotBlank(message = "Date of birth cannot be blank")
     private LocalDate dateOfBirth;
-
 
     @Schema(example = "password@123")
     @NotBlank(message = "Password cannot be blank")
