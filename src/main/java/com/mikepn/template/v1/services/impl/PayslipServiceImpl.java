@@ -1,6 +1,5 @@
 package com.mikepn.template.v1.services.impl;
 
-
 import com.mikepn.template.v1.dtos.request.PayslipRequestDTO;
 import com.mikepn.template.v1.dtos.response.payslip.PayslipResponseDTO;
 import com.mikepn.template.v1.enums.EPaySlipStatus;
@@ -13,6 +12,8 @@ import com.mikepn.template.v1.repositories.IEmployementRepository;
 import com.mikepn.template.v1.repositories.IPaySlipRepository;
 import com.mikepn.template.v1.services.IPaySlipService;
 import com.mikepn.template.v1.services.IUserService;
+import com.mikepn.template.v1.standalone.EmailService;
+import com.mikepn.template.v1.enums.IEmailTemplate;
 import com.mikepn.template.v1.utils.helper.PayslipHelper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,19 +33,17 @@ public class PayslipServiceImpl implements IPaySlipService {
     private final IDeductionRepository deductionRepository;
     private final PayslipHelper payslipHelper;
     private final IUserService userService;
+    private final EmailService emailService;
 
     @Override
     @Transactional
     public List<PayslipResponseDTO> generatePaysSlips(PayslipRequestDTO dto) {
         try {
-            // The issue is here in how we're checking for active employees
             List<Employee> activeEmployees = employeeRepository.findAll()
                     .stream()
                     .filter(employee -> employee.getEmployment() != null &&
                             employee.getEmployment().getStatus() == EmployementStatus.ACTIVE)
                     .collect(Collectors.toList());
-
-            System.out.println("Active employees: " + activeEmployees.size());
 
             List<PayslipResponseDTO> generatedPaysSlips = new ArrayList<>();
 
@@ -109,13 +105,12 @@ public class PayslipServiceImpl implements IPaySlipService {
             throw new AppException("Failed to generate payslips for employees: " + e.getMessage());
         }
     }
-    @Override
 
+    @Override
     public PayslipResponseDTO getPayslipById(UUID id) {
         Payslip payslip = paySlipRepository.findById(id)
                 .orElseThrow(() -> new AppException("Payslip not found"));
         return payslipHelper.mapToPayslipResponseDTO(payslip);
-
     }
 
     @Override
@@ -141,17 +136,15 @@ public class PayslipServiceImpl implements IPaySlipService {
         return payslipHelper.mapToPayslipResponseDTO(payslip);
     }
 
-
     @Override
     @Transactional
     public PayslipResponseDTO approvePayslip(UUID payslipId) {
-
         User loggedInUser = userService.getLoggedInUser();
 
         if(loggedInUser == null){
             throw new AppException("User not authenticated");
-
         }
+
         Payslip payslip = paySlipRepository.findById(payslipId)
                 .orElseThrow(() -> new AppException("Payslip not found"));
 
@@ -161,10 +154,9 @@ public class PayslipServiceImpl implements IPaySlipService {
 
         paySlipRepository.save(payslip);
 
-        // Notification for the employee will be handled by the database trigger
+        sendPayslipApprovedEmail(payslip);
 
         return payslipHelper.mapToPayslipResponseDTO(payslip);
-
     }
 
     @Override
@@ -177,21 +169,42 @@ public class PayslipServiceImpl implements IPaySlipService {
 
         List<Payslip> pendingPayslips = paySlipRepository.findAllByMonthAndYearAndStatus(month, year, EPaySlipStatus.PENDING);
 
-        System.out.println("Pending Payslips Query Parameters: Month=" + month + ", Year=" + year + ", Status=" + EPaySlipStatus.PENDING);
-        System.out.println("Pending Payslips Found: " + pendingPayslips.size());
-
         List<PayslipResponseDTO> approvedPayslips = new ArrayList<>();
 
         for (Payslip payslip : pendingPayslips) {
             payslip.setStatus(EPaySlipStatus.PAID);
             payslip.setApprovedAt(LocalDateTime.now());
             payslip.setApprovedBy(user.getEmail());
-            paySlipRepository.save(payslip); // Save each payslip after updating
+            paySlipRepository.save(payslip);
+
+            sendPayslipApprovedEmail(payslip);
+
             approvedPayslips.add(payslipHelper.mapToPayslipResponseDTO(payslip));
         }
 
         return approvedPayslips;
     }
 
+    private void sendPayslipApprovedEmail(Payslip payslip) {
+        String to = payslip.getEmployee().getProfile().getEmail();
+        if (to == null || to.isBlank()) {
+            System.err.println("Employee email is empty. Skipping notification email.");
+            return;
+        }
 
+        String username = payslip.getEmployee().getProfile().getFirstName();
+        String subject = "Salary Payment Notification";
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("month", payslip.getMonth());
+        variables.put("year", payslip.getYear());
+        variables.put("netSalary", payslip.getNetSalary());
+        variables.put("institution", "Your Institution");
+
+        try {
+            emailService.sendEmail(to, username, subject, IEmailTemplate.SALARY_PAYMENT_NOTIFICATION, variables);
+        } catch (Exception e) {
+            System.err.println("Failed to send salary notification email: " + e.getMessage());
+        }
+    }
 }

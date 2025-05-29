@@ -1,8 +1,9 @@
+-- Create the trigger function to insert notification after payslip is approved (status changes from PENDING to PAID)
 CREATE OR REPLACE FUNCTION notify_on_payslip_approval()
 RETURNS TRIGGER AS $$
 DECLARE
 v_message TEXT;
-    v_institution TEXT := 'Your Institution';  -- Adjust accordingly
+    v_institution TEXT := 'Your Institution';  -- Change this to your actual institution name
     v_firstname TEXT;
 BEGIN
     IF NEW.status = 'PAID' AND OLD.status = 'PENDING' THEN
@@ -18,15 +19,18 @@ v_message := format(
             NEW.employee_id::TEXT
         );
 
-INSERT INTO notifications(employee_id, message_content, month, year, status, email_sent, sent_at)
-VALUES (NEW.employee_id, v_message, NEW.month, NEW.year, 'PENDING', FALSE, now());
+INSERT INTO notifications(employee_id, message_content, month, year, status, email_sent, sent_at, payslip_id)
+VALUES (NEW.employee_id, v_message, NEW.month, NEW.year, 'PENDING', FALSE, now(), NEW.id);
 END IF;
+
 RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
+-- Drop existing trigger if exists (to avoid conflicts on re-run)
 DROP TRIGGER IF EXISTS trigger_notify_on_payslip_approval ON payslips;
 
+-- Create the trigger on payslips table AFTER UPDATE
 CREATE TRIGGER trigger_notify_on_payslip_approval
     AFTER UPDATE ON payslips
     FOR EACH ROW
