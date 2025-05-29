@@ -64,7 +64,6 @@ public class AuthenticationServiceImpl implements IAuthService {
                     .lastName(registerUserDTO.getLastName())
                     .email(registerUserDTO.getEmail())
                     .phoneNumber(registerUserDTO.getPhoneNumber())
-                    .nationalId(registerUserDTO.getNationalId())
                     .roles(Set.of(role))
                     .password(passwordEncoder.encode(registerUserDTO.getPassword()))
                     .build();

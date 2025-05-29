@@ -1,5 +1,6 @@
 package com.mikepn.template.v1.services;
 
+import com.mikepn.template.v1.dtos.request.auth.RegisterUserDTO;
 import com.mikepn.template.v1.dtos.request.auth.UpdateUserDTO;
 import com.mikepn.template.v1.dtos.request.user.CreateAdminDTO;
 import com.mikepn.template.v1.dtos.request.user.UserResponseDTO;
@@ -16,6 +17,7 @@ public interface IUserService {
     User getLoggedInUser();
 
     UserResponseDTO createAdmin(CreateAdminDTO createUserDTO);
+    UserResponseDTO createManager(RegisterUserDTO userDTO);
 
     List<User> getUsers();
 

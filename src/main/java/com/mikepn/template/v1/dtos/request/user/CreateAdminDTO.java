@@ -18,7 +18,6 @@ public class CreateAdminDTO extends RegisterUserDTO {
         this.setEmail(registerUserDTO.getEmail());
         this.setPhoneNumber(registerUserDTO.getPhoneNumber());
         this.setPassword(registerUserDTO.getPassword());
-        this.setNationalId(registerUserDTO.getNationalId());
         this.adminCreateCode = adminCreateCode;
     }
 
@@ -28,7 +27,6 @@ public class CreateAdminDTO extends RegisterUserDTO {
         this.setEmail(registerUserDTO.getEmail());
         this.setPhoneNumber(registerUserDTO.getPhoneNumber());
         this.setPassword(registerUserDTO.getPassword());
-        this.setNationalId(registerUserDTO.getNationalId());
     }
 
 }

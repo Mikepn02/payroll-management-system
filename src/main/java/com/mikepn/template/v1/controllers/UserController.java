@@ -1,13 +1,17 @@
 package com.mikepn.template.v1.controllers;
 
+import com.mikepn.template.v1.dtos.request.auth.RegisterUserDTO;
 import com.mikepn.template.v1.dtos.request.auth.UpdateUserDTO;
+import com.mikepn.template.v1.dtos.request.user.CreateAdminDTO;
 import com.mikepn.template.v1.dtos.request.user.UserResponseDTO;
 import com.mikepn.template.v1.dtos.request.user.UserRoleModificationDTO;
 import com.mikepn.template.v1.models.User;
 import com.mikepn.template.v1.payload.ApiResponse;
 import com.mikepn.template.v1.services.IUserService;
 import com.mikepn.template.v1.utils.ExceptionUtils;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +45,24 @@ public class UserController {
             ExceptionUtils.handleResponseException(e);
             return ApiResponse.fail("Failed to retrieve users", HttpStatus.BAD_REQUEST, e.getMessage());
         }
+    }
+
+    @Operation(summary = "Create admin account", description = "Creates a new administrator account")
+    @PostMapping("/admin/register")
+    public ResponseEntity<ApiResponse<UserResponseDTO>> createAdmin(@Valid @RequestBody CreateAdminDTO createAdminDTO) {
+        UserResponseDTO createdUser = userService.createAdmin(createAdminDTO);
+        return ApiResponse.success("Admin created successfully", HttpStatus.CREATED, createdUser);
+
+    }
+
+    @Operation(summary = "Create admin account", description = "Creates a new administrator account")
+    @PostMapping("/manager/register")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<UserResponseDTO>> createManager(@Valid @RequestBody RegisterUserDTO createManagerDTO) {
+
+        UserResponseDTO createdUser = userService.createManager(createManagerDTO);
+        return ApiResponse.success("Admin created successfully", HttpStatus.CREATED, createdUser);
+
     }
 
     @GetMapping("/{userId}")

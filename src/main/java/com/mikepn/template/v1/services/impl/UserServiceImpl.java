@@ -1,5 +1,6 @@
 package com.mikepn.template.v1.services.impl;
 
+import com.mikepn.template.v1.dtos.request.auth.RegisterUserDTO;
 import com.mikepn.template.v1.dtos.request.auth.UpdateUserDTO;
 import com.mikepn.template.v1.dtos.request.user.CreateAdminDTO;
 import com.mikepn.template.v1.dtos.request.user.UserResponseDTO;
@@ -70,12 +71,12 @@ public class UserServiceImpl implements IUserService {
                 .firstName(createAdminDTO.getFirstName())
                 .lastName(createAdminDTO.getLastName())
                 .fullName(createAdminDTO.getFirstName() + " " + createAdminDTO.getLastName())
-                .nationalId(createAdminDTO.getNationalId())
                 .phoneNumber(createAdminDTO.getPhoneNumber())
                 .password(passwordEncoder.encode(createAdminDTO.getPassword()))
                 .roles(new HashSet<>(Collections.singletonList(roleService.getRoleByName(ERole.ADMIN))))
                 .build();
     }
+
 
     @Override
     @Transactional
@@ -88,6 +89,30 @@ public class UserServiceImpl implements IUserService {
         userRepository.save(user);
         return new UserResponseDTO(user);
     }
+
+    @Override
+    public UserResponseDTO createManager(RegisterUserDTO userDTO) {
+        User user = createManagerEntity(userDTO);
+        userRepository.save(user);
+        return new UserResponseDTO(user);
+    }
+
+    public User createManagerEntity(RegisterUserDTO userDTO) {
+        if (isUserPresent(userDTO.getEmail())) {
+            throw new BadRequestException("User with the email already exists");
+        }
+
+        return User.builder()
+                .email(userDTO.getEmail())
+                .firstName(userDTO.getFirstName())
+                .lastName(userDTO.getLastName())
+                .fullName(userDTO.getFirstName() + " " + userDTO.getLastName())
+                .phoneNumber(userDTO.getPhoneNumber())
+                .password(passwordEncoder.encode(userDTO.getPassword()))
+                .roles(new HashSet<>(Collections.singletonList(roleService.getRoleByName(ERole.MANAGER))))
+                .build();
+    }
+
 
     @Override
     public List<User> getUsers() {

@@ -22,16 +22,13 @@ public class Person extends AbstractEntity {
     private String lastName;
     @Column(unique = true)
     private String phoneNumber;
-    @Column(unique = true)
-    private String nationalId;
     private LocalDate dateOfBirth;
 
 
-    public Person(String firstName, String lastName,String phoneNumber, String nationalId) {
+    public Person(String firstName, String lastName,String phoneNumber) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.phoneNumber = phoneNumber;
-        this.nationalId = nationalId;
     }
 
 }

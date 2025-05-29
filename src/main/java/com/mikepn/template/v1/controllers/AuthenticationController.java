@@ -57,24 +57,6 @@ public class AuthenticationController {
         }
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<ApiResponse<UserResponseDTO>> register(@Valid @RequestBody RegisterUserDTO dto){
-
-            UserResponseDTO response = authService.register(dto);
-            return ApiResponse.success("User registered successfully", HttpStatus.OK, response);
-
-    }
-
-    @Operation(summary = "Create admin account", description = "Creates a new administrator account")
-    @PostMapping("/admin/register")
-    public ResponseEntity<ApiResponse<UserResponseDTO>> createAdmin(@Valid @RequestBody CreateAdminDTO createAdminDTO) {
-
-            logger.debug("Creating admin account for: {}", createAdminDTO.getEmail());
-            UserResponseDTO createdUser = userService.createAdmin(createAdminDTO);
-            return ApiResponse.success("Admin created successfully", HttpStatus.CREATED, createdUser);
-
-    }
-
 
 
 
