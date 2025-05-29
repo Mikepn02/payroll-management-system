@@ -32,7 +32,8 @@ public class SpringbootTemplateApplication {
     public void seedData() {
         Set<ERole> userRoleSet = new HashSet<>();
         userRoleSet.add(ERole.ADMIN);
-        userRoleSet.add(ERole.USER);
+        userRoleSet.add(ERole.MANAGER);
+        userRoleSet.add(ERole.EMPLOYEE);
         for (ERole role : userRoleSet) {
             if (!this.roleService.isRolePresent(role)) {
                 this.roleService.createRole(role);
