@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Salary Payment Notification</title>
@@ -24,8 +24,7 @@
     <p class="message" th:text="'Dear ' + ${firstName} + ','"></p>
     <p class="message">
         Your salary for <span class="highlight" th:text="${month} + '/' + ${year}">05/2025</span> from <span class="highlight" th:text="${institution}">Your Company</span>
-        amounting to <span class="highlight" th:text="${amount}">500,000 RWF</span> has been credited to your account
-<!--        <span class="highlight" th:text="${employeeId}">EMP12345</span> successfully.-->
+        amounting to <span class="highlight" th:text="${amount}">500,000 RWF</span> has been credited to your account successfully.
     </p>
 
     <div class="footer">

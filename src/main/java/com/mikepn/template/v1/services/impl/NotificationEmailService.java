@@ -47,7 +47,23 @@ public class NotificationEmailService {
                 variables.put("messageContent", notification.getMessageContent());
                 variables.put("notificationDate", notification.getCreatedDate());
 
-                logger.info("Sending email to {}", to);
+                // From employee profile
+                variables.put("firstName", notification.getEmployee().getProfile().getFirstName());
+
+                // From notification itself
+                variables.put("month", notification.getMonth());
+                variables.put("year", notification.getYear());
+
+                // Fixed or config string
+                variables.put("institution", "Enterprise Resource Planning");
+
+                // Amount: from payslip if available
+                if (notification.getPayslip() != null) {
+                    variables.put("amount", notification.getPayslip().getNetSalary());
+                } else {
+                    variables.put("amount", "N/A");
+                }
+
                 emailService.sendEmail(
                         to,
                         notification.getEmployee().getProfile().getFullName(),
@@ -69,5 +85,6 @@ public class NotificationEmailService {
                 logger.error("Unexpected error while sending notification to {}: {}", to, ex.getMessage(), ex);
             }
         }
+
     }
 }
