@@ -19,6 +19,7 @@ public interface IPaySlipRepository extends JpaRepository<Payslip , UUID> {
 
     List<Payslip> findAllByEmployeeAndStatus(Employee employee, EPaySlipStatus status);
 
+
     List<Payslip> findAllByMonthAndYearAndStatus(Integer month, Integer year, EPaySlipStatus status);
 
 

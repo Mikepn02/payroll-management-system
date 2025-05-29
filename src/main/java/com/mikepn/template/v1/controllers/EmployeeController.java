@@ -30,7 +30,7 @@ public class EmployeeController {
 
     @Operation(summary = "Create new employee", description = "Creates a new employee record")
     @PostMapping
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<EmployeeResponseDTO>> createEmployee(
             @Valid @RequestBody CreateEmployeeDTO createEmployeeDTO) {
         try {

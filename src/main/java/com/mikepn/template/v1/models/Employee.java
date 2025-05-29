@@ -1,6 +1,7 @@
 package com.mikepn.template.v1.models;
 
 import com.mikepn.template.v1.common.AbstractEntity;
+import com.mikepn.template.v1.enums.EAccountStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -39,4 +40,7 @@ public class Employee extends AbstractEntity {
 
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Payslip> paySlips;
+
+    @Enumerated(EnumType.STRING)
+    private EAccountStatus status;
 }

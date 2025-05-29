@@ -64,8 +64,9 @@ public class DeductionServiceImpl implements IDeductionService {
                 deduction.setDeductionName(dto.getDeductionName());
             }
 
-            if (deduction.getPercentage().compareTo(BigDecimal.ZERO) != 0) {
-                deduction.setDeductionName(dto.getDeductionName());
+            // Update percentage if provided
+            if (dto.getPercentage() != null && dto.getPercentage().compareTo(BigDecimal.ZERO) > 0) {
+                deduction.setPercentage(dto.getPercentage());
             }
 
             deduction = deductionRepository.save(deduction);
