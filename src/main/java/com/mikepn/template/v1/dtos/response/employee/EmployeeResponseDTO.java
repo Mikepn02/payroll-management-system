@@ -1,8 +1,10 @@
 package com.mikepn.template.v1.dtos.response.employee;
 
+import com.mikepn.template.v1.enums.EmployementStatus;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -19,4 +21,11 @@ public class EmployeeResponseDTO {
     private boolean verified;
     private String code;
     private String phoneNumber;
+    private String department;
+    private String position;
+    private BigDecimal baseSalary;
+    private EmployementStatus employmentStatus;
+    private LocalDate joiningDate;
+
+
 }

@@ -9,13 +9,14 @@ import com.mikepn.template.v1.exceptions.BadRequestException;
 import com.mikepn.template.v1.exceptions.NotFoundException;
 import com.mikepn.template.v1.mapper.EmployeeMapper;
 import com.mikepn.template.v1.models.Employee;
+import com.mikepn.template.v1.models.Employment;
 import com.mikepn.template.v1.models.Role;
 import com.mikepn.template.v1.models.User;
 import com.mikepn.template.v1.repositories.IEmployeeRepository;
+import com.mikepn.template.v1.repositories.IEmployementRepository;
 import com.mikepn.template.v1.repositories.IUserRepository;
 import com.mikepn.template.v1.services.IEmployementService;
 import com.mikepn.template.v1.services.IRoleService;
-import com.mikepn.template.v1.utils.Mapper;
 import com.mikepn.template.v1.utils.helper.CodeGenerator;
 import com.mikepn.template.v1.utils.helper.EmployeeHelper;
 import jakarta.transaction.Transactional;
@@ -28,10 +29,11 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class EmployeeServiceImpl implements IEmployementService {
+public class EmployementServiceImpl implements IEmployementService {
 
     private final IEmployeeRepository employeeRepository;
     private final IUserRepository userRepository;
+    private final IEmployementRepository employementRepository;
     private final IRoleService roleService;
     private final EmployeeHelper employeeHelper;
     private final PasswordEncoder passwordEncoder;
@@ -40,115 +42,88 @@ public class EmployeeServiceImpl implements IEmployementService {
 
     @Override
     public EmployeeResponseDTO createEmployee(CreateEmployeeDTO dto) {
-
-        if(employeeRepository.existsByProfile_Email(dto.getEmail())){
-            throw new AppException("Employee with that email already exists");
+        if (employeeRepository.existsByProfile_Email(dto.getEmail())) {
+            throw new AppException("An employee with the provided email already exists.");
         }
 
-
-
-
         try {
-
-            Role role  = roleService.getRoleByName(ERole.EMPLOYEE);
-
-            User user = employeeHelper.buildUserFromDto(dto, role , passwordEncoder);
+            Role role = roleService.getRoleByName(ERole.EMPLOYEE);
+            User user = employeeHelper.buildUserFromDto(dto, role, passwordEncoder);
             user = userRepository.save(user);
-
 
             Employee employee = employeeHelper.buildEmployee(user);
             employee.setCode(generateUniqueEmployeeCode());
             employee = employeeRepository.save(employee);
 
+            Employment employment = employeeHelper.buildEmployeementFromEmployee(employee, dto);
+            employment.setCode(generateUniqueEmployementCode());
+            employment = employementRepository.save(employment);
 
-
-
-            return employeeMapper.toDto(employee);
-
+            return employeeMapper.toDto(employee, employment);
         } catch (Exception e) {
-            throw new AppException("Employee Registration Failed: " + e.getMessage());
+            throw new AppException("Employee registration failed: " + e.getMessage());
         }
-
     }
 
     @Override
     public EmployeeResponseDTO getEmployeeById(UUID employeeId) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new NotFoundException("Employee Not Found"));
+                .orElseThrow(() -> new NotFoundException("Employee not found with ID: " + employeeId));
         return employeeMapper.toDto(employee);
     }
 
     @Override
     public void deleteEmployee(UUID employeeId) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new NotFoundException("Employee Not Found"));
-        try{
+                .orElseThrow(() -> new NotFoundException("Employee not found with ID: " + employeeId));
+
+        try {
             employeeRepository.delete(employee);
         } catch (Exception e) {
-            throw new AppException("Employee Deletion Failed: " + e.getMessage());
+            throw new AppException("Failed to delete employee: " + e.getMessage());
         }
     }
 
     @Override
     public List<EmployeeResponseDTO> getAllEmployees() {
         return employeeRepository.findAll()
-                .stream().map(employee -> employeeMapper.toDto(employee)).toList();
+                .stream()
+                .map(employeeMapper::toDto)
+                .toList();
     }
 
     @Override
     @Transactional
-    public EmployeeResponseDTO updateEmployee(UUID employeeId, UpdateEmployeeDTO updateEmployeeDTO) {
+    public EmployeeResponseDTO updateEmployee(UUID employeeId, UpdateEmployeeDTO dto) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new NotFoundException("Employee not found with id: " + employeeId));
+                .orElseThrow(() -> new NotFoundException("Employee not found with ID: " + employeeId));
 
         User userProfile = employee.getProfile();
         if (userProfile == null) {
-            throw new BadRequestException("Employee profile not found");
+            throw new BadRequestException("Employee profile is missing.");
         }
 
-        if (!userProfile.getEmail().equals(updateEmployeeDTO.getEmail()) &&
-                userRepository.findUserByEmail(updateEmployeeDTO.getEmail()).isPresent()) {
-            throw new BadRequestException("Email is already taken");
+        if (dto.getEmail() != null && !userProfile.getEmail().equals(dto.getEmail()) &&
+                userRepository.findUserByEmail(dto.getEmail()).isPresent()) {
+            throw new BadRequestException("The provided email is already in use.");
         }
 
-        if (updateEmployeeDTO.getFirstName() != null) {
-            userProfile.setFirstName(updateEmployeeDTO.getFirstName());
-        }
+        if (dto.getFirstName() != null) userProfile.setFirstName(dto.getFirstName());
+        if (dto.getLastName() != null) userProfile.setLastName(dto.getLastName());
+        if (dto.getEmail() != null) userProfile.setEmail(dto.getEmail());
+        if (dto.getPhoneNumber() != null) userProfile.setPhoneNumber(dto.getPhoneNumber());
 
-        if (updateEmployeeDTO.getLastName() != null) {
-            userProfile.setLastName(updateEmployeeDTO.getLastName());
-        }
-
-        if (updateEmployeeDTO.getEmail() != null) {
-            if (!userProfile.getEmail().equals(updateEmployeeDTO.getEmail()) &&
-                    userRepository.findUserByEmail(updateEmployeeDTO.getEmail()).isPresent()) {
-                throw new BadRequestException("Email is already taken");
-            }
-            userProfile.setEmail(updateEmployeeDTO.getEmail());
-        }
-
-        if (updateEmployeeDTO.getPhoneNumber() != null) {
-            userProfile.setPhoneNumber(updateEmployeeDTO.getPhoneNumber());
-        }
-
-        if (updateEmployeeDTO.getFirstName() != null || updateEmployeeDTO.getLastName() != null) {
-            String firstName = updateEmployeeDTO.getFirstName() != null ?
-                    updateEmployeeDTO.getFirstName() : userProfile.getFirstName();
-            String lastName = updateEmployeeDTO.getLastName() != null ?
-                    updateEmployeeDTO.getLastName() : userProfile.getLastName();
-            userProfile.setFullName(firstName + " " + lastName);
-        }
-
-
+        String updatedFirstName = dto.getFirstName() != null ? dto.getFirstName() : userProfile.getFirstName();
+        String updatedLastName = dto.getLastName() != null ? dto.getLastName() : userProfile.getLastName();
+        userProfile.setFullName(updatedFirstName + " " + updatedLastName);
 
         userRepository.save(userProfile);
         employeeRepository.save(employee);
 
-
         return employeeMapper.toDto(employee);
     }
 
-    public String generateUniqueEmployeeCode() {
+    private String generateUniqueEmployeeCode() {
         String code;
         do {
             code = codeGenerator.generateEmployeeCode();
@@ -156,6 +131,11 @@ public class EmployeeServiceImpl implements IEmployementService {
         return code;
     }
 
-
-
+    private String generateUniqueEmployementCode() {
+        String code;
+        do {
+            code = codeGenerator.generateEmploymentCode();
+        } while (employementRepository.existsByCode(code));
+        return code;
+    }
 }

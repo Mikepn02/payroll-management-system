@@ -22,4 +22,10 @@ public class CodeGenerator {
         String randomPart = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         return "DED-" + datePart + "-" + randomPart;
     }
+
+    public static String generateEmploymentCode() {
+        String datePart = dateFormat.format(new Date());
+        String randomPart = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        return "EMPLOY-" + datePart + "-" + randomPart;
+    }
 }

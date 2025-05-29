@@ -1,7 +1,9 @@
 package com.mikepn.template.v1.utils.helper;
 
 import com.mikepn.template.v1.dtos.request.employee.CreateEmployeeDTO;
+import com.mikepn.template.v1.enums.EmployementStatus;
 import com.mikepn.template.v1.models.Employee;
+import com.mikepn.template.v1.models.Employment;
 import com.mikepn.template.v1.models.Role;
 import com.mikepn.template.v1.models.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,5 +31,17 @@ public class EmployeeHelper {
         return Employee.builder()
                 .profile(user)
                 .build();
+    }
+
+    public Employment buildEmployeementFromEmployee(Employee employee, CreateEmployeeDTO dto){
+        return  Employment.builder()
+                .department(dto.getDepartment())
+                .position(dto.getPosition())
+                .employee(employee)
+                .baseSalary(dto.getBaseSalary())
+                .status(EmployementStatus.ACTIVE)
+                .joiningDate(dto.getJoiningDate())
+                .build();
+
     }
 }
